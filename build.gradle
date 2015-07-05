@@ -1,9 +1,20 @@
 apply plugin: 'java'
 apply plugin: 'idea' 
+
 repositories {
     mavenCentral()
 }
 
+idea.project {
+    jdkName = '1.8'
+    languageLevel = '1.8'
+    vcs = 'Git'
+}
+
 dependencies {
     testCompile 'junit:junit:4.11'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
 }
