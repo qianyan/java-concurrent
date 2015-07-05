@@ -21,6 +21,7 @@ public class MultipleChannelsMergeSort {
 
         timeOfStarted = System.nanoTime();
         mergeSort(data);
+        executor.shutdown();
         System.out.println("cost of time for concurrent: " + (System.nanoTime() - timeOfStarted) / 1.0e9);
     }
 
