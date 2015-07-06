@@ -5,7 +5,7 @@ import java.util.concurrent.*;
 public class MultipleChannelsMergeSort {
 
     private static final int CHANNELS = 2;
-    private static final ExecutorService executor = Executors.newFixedThreadPool(CHANNELS * 5);
+    private static final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public static void main(String[] args) throws InterruptedException, ExecutionException, TimeoutException {
 
