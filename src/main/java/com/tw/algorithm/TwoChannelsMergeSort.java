@@ -2,10 +2,11 @@ package com.tw.algorithm;
 
 import java.util.concurrent.*;
 
-public class MultipleChannelsMergeSort {
+public class TwoChannelsMergeSort extends RecursiveTask<int[]>{
 
     private static final int CHANNELS = 2;
-    private static final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final ForkJoinPool forkJoinPool = new ForkJoinPool();
+    private final int[] source;
 
     public static void main(String[] args) throws InterruptedException, ExecutionException, TimeoutException {
 
@@ -19,10 +20,13 @@ public class MultipleChannelsMergeSort {
         plainMergeSort(data);
         System.out.println("cost of time for plain: " + (System.nanoTime() - timeOfStarted) / 1.0e9);
 
+        forkJoinPool.invoke(new TwoChannelsMergeSort(data));
         timeOfStarted = System.nanoTime();
-        mergeSort(data);
-        executor.shutdown();
-        System.out.println("cost of time for concurrent: " + (System.nanoTime() - timeOfStarted) / 1.0e9);
+        System.out.println("cost of time for fork join: " + (System.nanoTime() - timeOfStarted) / 1.0e9);
+    }
+
+    private TwoChannelsMergeSort(int[] source) {
+        this.source = source;
     }
 
     public static int[] merge(int[] left, int[] right) {
@@ -51,24 +55,6 @@ public class MultipleChannelsMergeSort {
         return mergedArray;
     }
 
-    public static int[] mergeSort(int[] source) throws InterruptedException, ExecutionException, TimeoutException {
-        if (source.length <= 1) {
-            return source;
-        }
-
-        int lengthOfLeft = source.length / CHANNELS;
-        int lengthOfRight = source.length - lengthOfLeft;
-        int[] leftOfSource = new int[lengthOfLeft];
-        int[] rightOfSource = new int[lengthOfRight];
-
-        System.arraycopy(source, 0, leftOfSource, 0, lengthOfLeft);
-        System.arraycopy(source, lengthOfLeft, rightOfSource, 0, lengthOfRight);
-
-        return merge(
-                executor.submit(() -> mergeSort(leftOfSource)).get(100, TimeUnit.MILLISECONDS),
-                executor.submit(() -> mergeSort(rightOfSource)).get(100, TimeUnit.MILLISECONDS));
-    }
-
     public static int[] plainMergeSort(int[] source) throws InterruptedException, ExecutionException, TimeoutException {
         if (source.length <= 1) {
             return source;
@@ -85,4 +71,20 @@ public class MultipleChannelsMergeSort {
         return merge(plainMergeSort(leftOfSource), plainMergeSort(rightOfSource));
     }
 
+    @Override
+    protected int[] compute() {
+        if (source.length <= 1) {
+            return source;
+        }
+
+        int lengthOfLeft = source.length / CHANNELS;
+        int lengthOfRight = source.length - lengthOfLeft;
+        int[] leftOfSource = new int[lengthOfLeft];
+        int[] rightOfSource = new int[lengthOfRight];
+
+        System.arraycopy(source, 0, leftOfSource, 0, lengthOfLeft);
+        System.arraycopy(source, lengthOfLeft, rightOfSource, 0, lengthOfRight);
+
+        return merge(new TwoChannelsMergeSort(leftOfSource).invoke(), new TwoChannelsMergeSort(rightOfSource).invoke());
+    }
 }
