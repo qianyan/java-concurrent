@@ -20,10 +20,10 @@ public class Account implements Comparable<Account> {
     public void deposit(final int amount) {
         monitor.lock();
         try {
-            if(amount > 0) {
+            if (amount > 0) {
                 System.out.println(String.format("deposit %s to balance %s", amount, balance));
                 balance += amount;
-                System.out.println(String.format("now: %s", balance));
+                System.out.println(String.format("%s after deposit: %s", Thread.currentThread(),balance));
 
 
             }
@@ -35,10 +35,10 @@ public class Account implements Comparable<Account> {
     public boolean withdraw(final int amount) {
         try {
             monitor.lock();
-            if(amount > 0 && balance >= amount) {
+            if (amount > 0 && balance >= amount) {
                 System.out.println(String.format("withdraw %s from balance %s", amount, balance));
                 balance -= amount;
-                System.out.println(String.format("now: %s", balance));
+                System.out.println(String.format("%s after withdraw: %s", Thread.currentThread(), balance));
                 return true;
             }
             return false;
